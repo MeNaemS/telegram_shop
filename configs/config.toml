@@ -1,0 +1,17 @@
+[default]
+log_level = "DEBUG"
+debug = true
+
+[default.database]
+host = "localhost"
+port = 5432
+
+[default.telegram]
+chats_id = []
+
+[production]
+log_level = "WARNING"
+debug = false
+
+[production.database]
+host = "postgres"
