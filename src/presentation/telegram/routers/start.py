@@ -23,6 +23,14 @@ async def start_handler(
 
 @start_router.callback_query(F.data == "back_to_main")
 async def back_to_main_menu(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Выберите действие:", reply_markup=await create_main_menu_keyboard()
-    )
+    if callback.message.photo:
+        await callback.message.delete()
+        await callback.bot.send_message(
+            chat_id=callback.message.chat.id,
+            text="Выберите действие:",
+            reply_markup=await create_main_menu_keyboard()
+        )
+    else:
+        await callback.message.edit_text(
+            "Выберите действие:", reply_markup=await create_main_menu_keyboard()
+        )

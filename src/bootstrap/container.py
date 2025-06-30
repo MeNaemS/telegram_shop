@@ -6,6 +6,7 @@ from src.bootstrap.providers.middlewares import MiddlewareProvider
 from src.bootstrap.providers.database import DatabaseProvider
 from src.bootstrap.providers.interfaces import InterfacesProvider
 from src.bootstrap.providers.mappers import MappersProvider
+from src.bootstrap.providers.http_provider import HttpProvider
 
 
 def make_container():
@@ -16,5 +17,6 @@ def make_container():
         MiddlewareProvider(),
         DatabaseProvider(),
         InterfacesProvider(),
-        MappersProvider()
+        MappersProvider(),
+        HttpProvider()
     )

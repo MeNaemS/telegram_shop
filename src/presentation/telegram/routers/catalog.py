@@ -7,6 +7,7 @@ from src.application.usecases.get_products import GetProductsUseCase
 from src.application.dtos.main_menu import CategoryDTO
 from src.presentation.telegram.keyboards.paginated_keyboard import create_paginated_keyboard
 from src.presentation.telegram.keyboards.product_keyboard import create_product_keyboard
+from src.presentation.telegram.services.product_service import ProductService
 
 catalog_router: Router = Router(name=__name__)
 
@@ -40,14 +41,24 @@ async def handle_catalog(
     page: int = int(callback.data.split("_")[-1])
     category_inf: CategoryDTO = await get_categories_use_case.execute(page)
     keyboard: InlineKeyboardMarkup = await create_paginated_keyboard(category_inf, page, "catalog")
-    await callback.message.edit_text("📦 Каталог товаров:", reply_markup=keyboard)
+    
+    if callback.message.photo:
+        await callback.message.delete()
+        await callback.bot.send_message(
+            chat_id=callback.message.chat.id,
+            text="📦 Каталог товаров:",
+            reply_markup=keyboard
+        )
+    else:
+        await callback.message.edit_text("📦 Каталог товаров:", reply_markup=keyboard)
 
 
 @catalog_router.callback_query(F.data.startswith("products_"))
 @inject
 async def handle_products(
     callback: CallbackQuery,
-    get_products_use_case: FromDishka[GetProductsUseCase]
+    get_products_use_case: FromDishka[GetProductsUseCase],
+    product_service: FromDishka[ProductService]
 ):
     parts = callback.data.split("_")
     category_id = int(parts[1])
@@ -66,37 +77,16 @@ async def handle_products(
     
     keyboard = await create_product_keyboard(products, current_index, category_id)
     
-    if product.image:
-        from src.bootstrap.container import make_container
-        from src.application.interfaces.image_client import ImageClientInterface
-        container = make_container()
-        image_client = await container.get(ImageClientInterface)
-        image_url = await image_client.get_image_url(product.image)
-        if image_url:
-            try:
-                image_data = await image_client.download_image(image_url)
-                if image_data:
-                    from aiogram.types import BufferedInputFile
-                    photo = BufferedInputFile(image_data, filename="product.jpg")
-                    await callback.message.delete()
-                    await callback.bot.send_photo(
-                        chat_id=callback.message.chat.id,
-                        photo=photo,
-                        caption=text,
-                        reply_markup=keyboard
-                    )
-                    return
-            except Exception:
-                pass
-    
-    await callback.message.edit_text(text, reply_markup=keyboard)
+    if not await product_service.send_product_with_image(callback, product, text, keyboard):
+        await callback.message.edit_text(text, reply_markup=keyboard)
 
 
 @catalog_router.callback_query(F.data.startswith("product_"))
 @inject
 async def handle_product_navigation(
     callback: CallbackQuery,
-    get_products_use_case: FromDishka[GetProductsUseCase]
+    get_products_use_case: FromDishka[GetProductsUseCase],
+    product_service: FromDishka[ProductService]
 ):
     parts = callback.data.split("_")
     category_id = int(parts[1])
@@ -108,27 +98,5 @@ async def handle_product_navigation(
     
     keyboard = await create_product_keyboard(products, current_index, category_id)
     
-    if product.image:
-        from src.bootstrap.container import make_container
-        from src.application.interfaces.image_client import ImageClientInterface
-        container = make_container()
-        image_client = await container.get(ImageClientInterface)
-        image_url = await image_client.get_image_url(product.image)
-        if image_url:
-            try:
-                image_data = await image_client.download_image(image_url)
-                if image_data:
-                    from aiogram.types import BufferedInputFile
-                    photo = BufferedInputFile(image_data, filename="product.jpg")
-                    await callback.message.delete()
-                    await callback.bot.send_photo(
-                        chat_id=callback.message.chat.id,
-                        photo=photo,
-                        caption=text,
-                        reply_markup=keyboard
-                    )
-                    return
-            except Exception:
-                pass
-    
-    await callback.message.edit_text(text, reply_markup=keyboard)
+    if not await product_service.send_product_with_image(callback, product, text, keyboard):
+        await callback.message.edit_text(text, reply_markup=keyboard)

@@ -9,6 +9,10 @@ port = 5432
 [default.telegram]
 chats_id = []
 
+[default.http]
+timeout = 30
+connector_limit = 100
+
 [production]
 log_level = "WARNING"
 debug = false
