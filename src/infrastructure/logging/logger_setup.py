@@ -6,7 +6,7 @@ from src.infrastructure.logging.logger_config_schema import LoggerConfigSchema
 
 def setup_logger() -> Logger:
     log_level: str = config.log_level.upper()
-    log_file: str = "/app/logs/app.log"
+    log_file: str = "/app/logs/telegram.log" if not config.debug else "telegram.log"
     log_config: LoggerConfigSchema = {
         "version": 1,
         "disable_existing_loggers": False,

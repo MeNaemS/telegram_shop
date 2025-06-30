@@ -19,6 +19,8 @@ from src.application.interfaces.excel_client import ExcelClientInterface
 from src.application.mappers.main_menu_mapper import CategoryMapper
 from src.application.usecases.get_categories import GetCategoriesUseCase
 from src.application.usecases.get_subcategories import GetSubcategoriesUseCase
+from src.application.usecases.create_payment import CreatePaymentUseCase
+from src.application.interfaces.payment_client import PaymentClientInterface
 
 
 class UseCasesProvider(Provider):
@@ -85,6 +87,12 @@ class UseCasesProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     async def create_order_use_case(
-        self, cart_repo: CartRepositoryInterface, order_repo: OrderRepositoryInterface, excel_client: ExcelClientInterface
+        self, cart_repo: CartRepositoryInterface, order_repo: OrderRepositoryInterface, excel_client: ExcelClientInterface, payment_client: PaymentClientInterface
     ) -> CreateOrderUseCase:
-        return CreateOrderUseCase(cart_repo, order_repo, excel_client)
+        return CreateOrderUseCase(cart_repo, order_repo, excel_client, payment_client)
+
+    @provide(scope=Scope.REQUEST)
+    async def create_payment_use_case(
+        self, cart_repo: CartRepositoryInterface, payment_client: PaymentClientInterface
+    ) -> CreatePaymentUseCase:
+        return CreatePaymentUseCase(cart_repo, payment_client)

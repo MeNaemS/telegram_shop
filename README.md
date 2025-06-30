@@ -197,6 +197,14 @@ debug = false
 
 [production.database]
 host = "postgres"  # Docker service name
+
+[default.yookassa]
+shop_id = "fake_shop_id"
+secret_key = "fake_secret_key"
+
+[default.http]
+timeout = 30
+connector_limit = 100
 ```
 
 ## 📖 Использование

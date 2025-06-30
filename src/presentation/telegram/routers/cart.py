@@ -20,13 +20,23 @@ async def handle_add_to_cart(callback: CallbackQuery, state: FSMContext):
         [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_cart")]
     ])
     
-    await callback.message.edit_text(
-        "Укажите количество товара:",
-        reply_markup=keyboard
-    )
+    if callback.message.photo:
+        await callback.message.delete()
+        new_message = await callback.bot.send_message(
+            chat_id=callback.message.chat.id,
+            text="Укажите количество товара:",
+            reply_markup=keyboard
+        )
+        message_id = new_message.message_id
+    else:
+        await callback.message.edit_text(
+            "Укажите количество товара:",
+            reply_markup=keyboard
+        )
+        message_id = callback.message.message_id
     
     await state.set_state(CartState.waiting_quantity)
-    await state.update_data(product_id=product_id, message_id=callback.message.message_id)
+    await state.update_data(product_id=product_id, message_id=message_id)
 
 
 @cart_router.callback_query(F.data == "cancel_cart")
